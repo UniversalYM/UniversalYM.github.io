@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  
+  
+  
+  <entry>
+    <title>冒险RPG Demo</title>
+    <link href="/RPGDemo/"/>
+    <url>/RPGDemo/</url>
+    
+    <content type="html"><![CDATA[<p>这篇博客用来简单记录当时的一些想法和演示游戏效果,好的游戏设计值得令人借鉴和深思.</p><h2 id="材质：墙壁透视"><a href="#材质：墙壁透视" class="headerlink" title="材质：墙壁透视"></a>材质：墙壁透视</h2><p>现在在网上搜索如何实现墙壁透视效果，大多数都是说用射线和碰撞体去检测需要隐藏的对象，但是射线检测和碰撞检测除了性能开销大，在某些情况下表现出的效果并不好，比如说想让Actor某部分隐藏（或者当一个Actor由多个子Actor组成的情况）</p><p>因此从材质下手效果最好。</p><p>一开始我有个的很简单的想法，只需要给墙壁规定一个向外的方向向量，当与视角同向就隐藏自身。但这种方法只适合简单的火柴盒建筑，四面墙的情况，当建筑内有多余的墙的时候，就会出问题。</p><p>仔细考虑一下什么情况下墙会隐藏呢？当墙与摄像机的距离小于人与角色的距离的时候，也就是墙在摄像机和角色中间时需要隐藏。</p><center><img src="/img/Post/CameraDistance_01.png" width="80%" height="80%"></center><p>修改后效果如下</p><center><img src="/gif/WallHide_01.gif" width="70%" height="70%"></center><p>这个方法还是有些局限性，当角色处于部分位置时，墙面之间因为位置原因，连接处会有很强的割裂效果。</p><div class="group-image-container"><div class="group-image-row"><div class="group-image-wrap"><img src="/img/Post/VisualProblem_01.png"></div><div class="group-image-wrap"><img src="/img/Post/VisualProblem_02.png"></div></div></div><p>所以我们可以直接在摄像机正中央”挖”一个洞(球形遮罩)，洞内部分隐藏即可。</p><center><img src="/gif/WallHide_02.gif" width="70%" height="70%"></center><p>虽然边缘部分仍有瑕疵，但总的观感好很多了。</p><p>那为什么不直接“挖”洞呢？首先无论距离“挖”多挖少，在某些情况下的特殊角度下，墙壁透视显示会有问题(我已经试过了)，其次就是视觉效果也不太好，因此上边这种相结合的效果会更好些。</p><p>有的人强迫症犯了(比如我)，有没有更完美的效果呢，我想起了&lt;&lt;诡野西部&gt;&gt;这款游戏也是上帝视角，它也有墙壁的透视的效果，所以我打算去研究研究。</p><center><img src="/gif/gyxb_01.gif" width="70%" height="70%"></center><p>啊…丝滑…非常丝滑，过度很舒服，也不存在视线遮挡问题。</p><p>之前我认为靠近远处的墙壁时，墙壁不该隐藏，应当全部显现出来，但是游戏演示的效果确实不影响观感，是我想多了。既然如此，那我直接开始借鉴啦(读书人的事能叫抄吗)。</p><div class="group-image-container"><div class="group-image-row"><div class="group-image-wrap"><img src="/img/Post/gyxb_01.png"></div></div><div class="group-image-row"><div class="group-image-wrap"><img src="/img/Post/CameraPosition_01.png"></div></div></div><p>以前我也试过这个效果，其实从这张截图我们就不难看出，通过计算相机方向与物品指向角色方向间的夹角，当夹角达到一定程度时，物品就会隐藏。</p><p>现在看看最终结果</p><p><img src="/gif/WallHide_03.gif"></p><h2 id="PCG"><a href="#PCG" class="headerlink" title="PCG"></a>PCG</h2><p>程序化生成能帮人从繁杂的任务中解脱，譬如环境布置，场景生成。再也不需要人工去一个一个挪动了。在一些案例中，河流，马路等都是PCG生成的，一旦后期需要变动场景，重新布置起来也比较方便。</p><p>以下简单演示的篱笆和建筑的生成效果。</p><div class="group-image-container"><div class="group-image-row"><div class="group-image-wrap"><img src="/gif/PCG_01.gif"></div><div class="group-image-wrap"><img src="/gif/PCG_02.gif"></div></div></div><h2 id="GAS与AI"><a href="#GAS与AI" class="headerlink" title="GAS与AI"></a>GAS与AI</h2><p>当项目越做越大，角色系统越做越复杂时，维护起来也是越来越困难。各种条件判断，武器类型每多一个，角色本身包含的相关技能就多一个，但角色每次只会用其中一个武器，有些技能甚至整个生命周期内都用不上。这样占用了大量的资源和性能，此时急需要把角色与技能分离的方案，而GAS就是这个方案。</p><p>由于本项目是单机的，所以对网络的需求并不大。我第一次见到GAS是在UE的官方博客上的<a href="https://www.unrealengine.com/zh-CN/tech-blog/usage-and-optimization-of-gameplayability-frame-in-the-tower-of-fantasy">幻塔技术贴</a> 。GAS现在帮我最大的两个部分分别是GameplayAbility把角色和技能解耦，GameplayEffect轻松实现BUFF类效果，不用再苦恼于BUFF的持续性问题和它们互相之间的交互性问题。</p><center><img src="/img/Post/UE_AI_01.png" width="80%" height="80%"></center><p>UE官方的演示案例Lyra也给了我不少帮助。官方通过服务的方式让AI并行执行攻击和移动，直接就秒杀了我复杂的SimpleParallel组合方案(我甚至嵌套了三层…)。</p><p>内心OS：这样的好案例多来点。</p><p class="note note-secondary">一些其他功能的演示：</p><table><thead><tr><th align="center"><img src="/gif/Show_01.gif"></th><th align="center"><img src="/gif/Show_02.gif"></th></tr></thead><tbody><tr><td align="center"><em>对话和商店</em></td><td align="center"><em>战斗</em></td></tr></tbody></table><p>待续..</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>Deployment</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>Demo</tag>
+      
+      <tag>UE</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  
+</search>
